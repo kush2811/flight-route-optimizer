@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Database credentials — NEVER commit these
+.env
+db_config.py
+config.py
+secrets.py
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+.DS_Store?
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Logs
+*.log
