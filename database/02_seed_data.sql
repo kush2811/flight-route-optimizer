@@ -1,212 +1,765 @@
 -- ============================================================
 -- Global Flight Route Optimization System
--- File: 02_seed_data.sql
--- Description: All sample data (run after 01_schema.sql)
+-- File: 02_seed_data.sql  (EXPANDED — realistic dataset)
+-- Description: 50 countries, 85 cities, 85 airports,
+--              30 airlines, 300+ flights, 700+ pricing rows
+-- Run after: 01_schema.sql
 -- ============================================================
 
--- ─────────────────────────────────────────
--- COUNTRIES (8 rows)
--- ─────────────────────────────────────────
-INSERT INTO countries (country_code, country_name, continent)
+-- ============================================================
+-- STEP 1: COUNTRIES (50 countries)
+-- ============================================================
+INSERT INTO countries (country_code, country_name, continent) VALUES
+('IN', 'India',               'Asia'),
+('US', 'United States',       'Americas'),
+('GB', 'United Kingdom',      'Europe'),
+('AE', 'UAE',                 'Asia'),
+('SG', 'Singapore',           'Asia'),
+('DE', 'Germany',             'Europe'),
+('AU', 'Australia',           'Oceania'),
+('JP', 'Japan',               'Asia'),
+('FR', 'France',              'Europe'),
+('NL', 'Netherlands',         'Europe'),
+('TR', 'Turkey',              'Europe'),
+('TH', 'Thailand',            'Asia'),
+('MY', 'Malaysia',            'Asia'),
+('HK', 'Hong Kong',           'Asia'),
+('CN', 'China',               'Asia'),
+('KR', 'South Korea',         'Asia'),
+('QA', 'Qatar',               'Asia'),
+('SA', 'Saudi Arabia',        'Asia'),
+('EG', 'Egypt',               'Africa'),
+('ZA', 'South Africa',        'Africa'),
+('KE', 'Kenya',               'Africa'),
+('NG', 'Nigeria',             'Africa'),
+('ET', 'Ethiopia',            'Africa'),
+('MA', 'Morocco',             'Africa'),
+('CA', 'Canada',              'Americas'),
+('MX', 'Mexico',              'Americas'),
+('BR', 'Brazil',              'Americas'),
+('AR', 'Argentina',           'Americas'),
+('CO', 'Colombia',            'Americas'),
+('CL', 'Chile',               'Americas'),
+('ES', 'Spain',               'Europe'),
+('IT', 'Italy',               'Europe'),
+('CH', 'Switzerland',         'Europe'),
+('RU', 'Russia',              'Europe'),
+('PL', 'Poland',              'Europe'),
+('PT', 'Portugal',            'Europe'),
+('GR', 'Greece',              'Europe'),
+('SE', 'Sweden',              'Europe'),
+('NO', 'Norway',              'Europe'),
+('DK', 'Denmark',             'Europe'),
+('FI', 'Finland',             'Europe'),
+('AT', 'Austria',             'Europe'),
+('BE', 'Belgium',             'Europe'),
+('NZ', 'New Zealand',         'Oceania'),
+('ID', 'Indonesia',           'Asia'),
+('PH', 'Philippines',         'Asia'),
+('VN', 'Vietnam',             'Asia'),
+('PK', 'Pakistan',            'Asia'),
+('BD', 'Bangladesh',          'Asia'),
+('LK', 'Sri Lanka',           'Asia')
+ON CONFLICT (country_code) DO NOTHING;
+
+
+-- ============================================================
+-- STEP 2: CITIES (85 cities)
+-- ============================================================
+INSERT INTO cities (city_name, country_code, latitude, longitude, timezone) VALUES
+('Mumbai',        'IN',  19.0761,   72.8775, 'Asia/Kolkata'),
+('Delhi',         'IN',  28.6139,   77.2090, 'Asia/Kolkata'),
+('Bengaluru',     'IN',  12.9716,   77.5946, 'Asia/Kolkata'),
+('Chennai',       'IN',  13.0827,   80.2707, 'Asia/Kolkata'),
+('Hyderabad',     'IN',  17.3850,   78.4867, 'Asia/Kolkata'),
+('Kolkata',       'IN',  22.5726,   88.3639, 'Asia/Kolkata'),
+('Ahmedabad',     'IN',  23.0225,   72.5714, 'Asia/Kolkata'),
+('Kochi',         'IN',   9.9312,   76.2673, 'Asia/Kolkata'),
+('Goa',           'IN',  15.2993,   74.1240, 'Asia/Kolkata'),
+('New York',      'US',  40.7128,  -74.0060, 'America/New_York'),
+('Los Angeles',   'US',  34.0522, -118.2437, 'America/Los_Angeles'),
+('Chicago',       'US',  41.8781,  -87.6298, 'America/Chicago'),
+('Houston',       'US',  29.7604,  -95.3698, 'America/Chicago'),
+('San Francisco', 'US',  37.7749, -122.4194, 'America/Los_Angeles'),
+('Miami',         'US',  25.7617,  -80.1918, 'America/New_York'),
+('Seattle',       'US',  47.6062, -122.3321, 'America/Los_Angeles'),
+('Boston',        'US',  42.3601,  -71.0589, 'America/New_York'),
+('Dallas',        'US',  32.7767,  -96.7970, 'America/Chicago'),
+('Atlanta',       'US',  33.7490,  -84.3880, 'America/New_York'),
+('London',        'GB',  51.5074,   -0.1278, 'Europe/London'),
+('Manchester',    'GB',  53.4808,   -2.2426, 'Europe/London'),
+('Paris',         'FR',  48.8566,    2.3522, 'Europe/Paris'),
+('Frankfurt',     'DE',  50.1109,    8.6821, 'Europe/Berlin'),
+('Munich',        'DE',  48.1351,   11.5820, 'Europe/Berlin'),
+('Amsterdam',     'NL',  52.3676,    4.9041, 'Europe/Amsterdam'),
+('Istanbul',      'TR',  41.0082,   28.9784, 'Europe/Istanbul'),
+('Madrid',        'ES',  40.4168,   -3.7038, 'Europe/Madrid'),
+('Barcelona',     'ES',  41.3851,    2.1734, 'Europe/Madrid'),
+('Rome',          'IT',  41.9028,   12.4964, 'Europe/Rome'),
+('Zurich',        'CH',  47.3769,    8.5417, 'Europe/Zurich'),
+('Moscow',        'RU',  55.7558,   37.6173, 'Europe/Moscow'),
+('Warsaw',        'PL',  52.2297,   21.0122, 'Europe/Warsaw'),
+('Lisbon',        'PT',  38.7223,   -9.1393, 'Europe/Lisbon'),
+('Athens',        'GR',  37.9838,   23.7275, 'Europe/Athens'),
+('Stockholm',     'SE',  59.3293,   18.0686, 'Europe/Stockholm'),
+('Copenhagen',    'DK',  55.6761,   12.5683, 'Europe/Copenhagen'),
+('Helsinki',      'FI',  60.1699,   24.9384, 'Europe/Helsinki'),
+('Vienna',        'AT',  48.2082,   16.3738, 'Europe/Vienna'),
+('Brussels',      'BE',  50.8503,    4.3517, 'Europe/Brussels'),
+('Dubai',         'AE',  25.2048,   55.2708, 'Asia/Dubai'),
+('Abu Dhabi',     'AE',  24.4539,   54.3773, 'Asia/Dubai'),
+('Doha',          'QA',  25.2854,   51.5310, 'Asia/Qatar'),
+('Riyadh',        'SA',  24.6877,   46.7219, 'Asia/Riyadh'),
+('Jeddah',        'SA',  21.5433,   39.1728, 'Asia/Riyadh'),
+('Singapore',     'SG',   1.3521,  103.8198, 'Asia/Singapore'),
+('Tokyo',         'JP',  35.6762,  139.6503, 'Asia/Tokyo'),
+('Osaka',         'JP',  34.6937,  135.5023, 'Asia/Tokyo'),
+('Bangkok',       'TH',  13.7563,  100.5018, 'Asia/Bangkok'),
+('Kuala Lumpur',  'MY',   3.1390,  101.6869, 'Asia/Kuala_Lumpur'),
+('Hong Kong',     'HK',  22.3193,  114.1694, 'Asia/Hong_Kong'),
+('Shanghai',      'CN',  31.2304,  121.4737, 'Asia/Shanghai'),
+('Beijing',       'CN',  39.9042,  116.4074, 'Asia/Shanghai'),
+('Seoul',         'KR',  37.5665,  126.9780, 'Asia/Seoul'),
+('Colombo',       'LK',   6.9271,   79.8612, 'Asia/Colombo'),
+('Dhaka',         'BD',  23.8103,   90.4125, 'Asia/Dhaka'),
+('Karachi',       'PK',  24.8607,   67.0011, 'Asia/Karachi'),
+('Manila',        'PH',  14.5995,  120.9842, 'Asia/Manila'),
+('Jakarta',       'ID',  -6.2088,  106.8456, 'Asia/Jakarta'),
+('Ho Chi Minh',   'VN',  10.8231,  106.6297, 'Asia/Ho_Chi_Minh'),
+('Cairo',         'EG',  30.0444,   31.2357, 'Africa/Cairo'),
+('Johannesburg',  'ZA', -26.2041,   28.0473, 'Africa/Johannesburg'),
+('Cape Town',     'ZA', -33.9249,   18.4241, 'Africa/Johannesburg'),
+('Nairobi',       'KE',  -1.2921,   36.8219, 'Africa/Nairobi'),
+('Lagos',         'NG',   6.5244,    3.3792, 'Africa/Lagos'),
+('Addis Ababa',   'ET',   9.0320,   38.7469, 'Africa/Addis_Ababa'),
+('Casablanca',    'MA',  33.5731,   -7.5898, 'Africa/Casablanca'),
+('Toronto',       'CA',  43.6532,  -79.3832, 'America/Toronto'),
+('Vancouver',     'CA',  49.2827, -123.1207, 'America/Vancouver'),
+('Montreal',      'CA',  45.5017,  -73.5673, 'America/Toronto'),
+('Mexico City',   'MX',  19.4326,  -99.1332, 'America/Mexico_City'),
+('Sao Paulo',     'BR', -23.5505,  -46.6333, 'America/Sao_Paulo'),
+('Rio de Janeiro','BR', -22.9068,  -43.1729, 'America/Sao_Paulo'),
+('Buenos Aires',  'AR', -34.6037,  -58.3816, 'America/Argentina/Buenos_Aires'),
+('Bogota',        'CO',   4.7110,  -74.0721, 'America/Bogota'),
+('Santiago',      'CL', -33.4489,  -70.6693, 'America/Santiago'),
+('Sydney',        'AU', -33.8688,  151.2093, 'Australia/Sydney'),
+('Melbourne',     'AU', -37.8136,  144.9631, 'Australia/Melbourne'),
+('Brisbane',      'AU', -27.4698,  153.0251, 'Australia/Brisbane'),
+('Perth',         'AU', -31.9505,  115.8605, 'Australia/Perth'),
+('Auckland',      'NZ', -36.8485,  174.7633, 'Pacific/Auckland')
+ON CONFLICT (city_name, country_code) DO NOTHING;
+
+
+-- ============================================================
+-- STEP 3: AIRPORTS (85 airports using subquery joins)
+-- ============================================================
+INSERT INTO airports (airport_code, airport_name, city_id, latitude, longitude, elevation_ft, num_terminals, num_gates, is_international)
+SELECT code, name, c.city_id, lat, lon, elev, terms, gates, intl
+FROM (VALUES
+  ('BOM','Chhatrapati Shivaji Maharaj Intl','Mumbai','IN',        19.0887,  72.8679,   37,2, 72,true),
+  ('DEL','Indira Gandhi International',     'Delhi','IN',         28.5562,  77.1001,  777,3, 78,true),
+  ('BLR','Kempegowda International',        'Bengaluru','IN',     13.1989,  77.7056, 3000,2, 50,true),
+  ('MAA','Chennai International',           'Chennai','IN',       12.9900,  80.1693,   52,2, 40,true),
+  ('HYD','Rajiv Gandhi International',      'Hyderabad','IN',     17.2313,  78.4298, 2024,1, 36,true),
+  ('CCU','Netaji Subhas Chandra Bose Intl', 'Kolkata','IN',       22.6549,  88.4467,   16,2, 38,true),
+  ('AMD','Sardar Vallabhbhai Patel Intl',   'Ahmedabad','IN',     23.0777,  72.6347,  183,1, 24,true),
+  ('COK','Cochin International',            'Kochi','IN',          9.9952,  76.2701,   30,2, 28,true),
+  ('GOI','Goa International',              'Goa','IN',            15.3808,  73.8314,  150,1, 18,true),
+  ('JFK','John F Kennedy International',   'New York','US',       40.6397, -73.7789,   13,6,128,true),
+  ('LAX','Los Angeles International',      'Los Angeles','US',    33.9425,-118.4081,  126,9,146,true),
+  ('ORD','Chicago OHare International',    'Chicago','US',        41.9742, -87.9073,  680,4,191,true),
+  ('IAH','George Bush Intercontinental',   'Houston','US',        29.9902, -95.3368,   97,5,131,true),
+  ('SFO','San Francisco International',    'San Francisco','US',  37.6213,-122.3790,   13,4,115,true),
+  ('MIA','Miami International',            'Miami','US',          25.7959, -80.2870,    8,3, 81,true),
+  ('SEA','Seattle Tacoma International',   'Seattle','US',        47.4502,-122.3088,  432,1, 82,true),
+  ('BOS','Logan International',            'Boston','US',         42.3656, -71.0096,   19,3, 95,true),
+  ('DFW','Dallas Fort Worth International','Dallas','US',         32.8998, -97.0403,  607,5,163,true),
+  ('ATL','Hartsfield Jackson Atlanta Intl','Atlanta','US',        33.6367, -84.4281, 1026,7,192,true),
+  ('LHR','London Heathrow',               'London','GB',          51.4775,  -0.4614,   83,5,115,true),
+  ('MAN','Manchester Airport',             'Manchester','GB',     53.3536,  -2.2750,  257,3, 60,true),
+  ('CDG','Charles de Gaulle',             'Paris','FR',           49.0097,   2.5479,  392,3,117,true),
+  ('FRA','Frankfurt am Main',             'Frankfurt','DE',        50.0264,   8.5431,  364,2, 75,true),
+  ('MUC','Munich International',          'Munich','DE',          48.3538,  11.7861, 1487,2, 87,true),
+  ('AMS','Amsterdam Schiphol',            'Amsterdam','NL',       52.3086,   4.7639,   -7,1,165,true),
+  ('IST','Istanbul Airport',              'Istanbul','TR',         41.2753,  28.7519,  325,1,143,true),
+  ('MAD','Adolfo Suarez Madrid Barajas',  'Madrid','ES',          40.4936,  -3.5668, 2000,4, 96,true),
+  ('BCN','Barcelona El Prat',             'Barcelona','ES',        41.2971,   2.0785,   13,3, 73,true),
+  ('FCO','Leonardo da Vinci Fiumicino',   'Rome','IT',            41.8003,  12.2389,   14,4, 72,true),
+  ('ZRH','Zurich Airport',               'Zurich','CH',           47.4647,   8.5492, 1416,3, 88,true),
+  ('SVO','Sheremetyevo International',    'Moscow','RU',           55.9726,  37.4146,  626,3, 71,true),
+  ('WAW','Warsaw Chopin',                'Warsaw','PL',            52.1657,  20.9671,  362,2, 42,true),
+  ('LIS','Lisbon Humberto Delgado',      'Lisbon','PT',            38.7742,  -9.1342,  374,1, 43,true),
+  ('ATH','Athens International',         'Athens','GR',            37.9364,  23.9445,  308,1, 50,true),
+  ('ARN','Stockholm Arlanda',            'Stockholm','SE',          59.6519,  17.9186,  137,5, 70,true),
+  ('CPH','Copenhagen Airport',           'Copenhagen','DK',         55.6180,  12.6560,   17,3, 64,true),
+  ('HEL','Helsinki Vantaa',             'Helsinki','FI',            60.3172,  24.9633,  179,2, 48,true),
+  ('VIE','Vienna International',         'Vienna','AT',             48.1103,  16.5697,  600,3, 58,true),
+  ('BRU','Brussels Airport',             'Brussels','BE',            50.9014,   4.4844,  184,1, 55,true),
+  ('DXB','Dubai International',          'Dubai','AE',              25.2528,  55.3644,   62,3, 98,true),
+  ('AUH','Abu Dhabi International',      'Abu Dhabi','AE',           24.4430,  54.6511,   88,3, 72,true),
+  ('DOH','Hamad International',          'Doha','QA',               25.2731,  51.6082,   13,1,138,true),
+  ('RUH','King Khalid International',    'Riyadh','SA',              24.9576,  46.6988, 2049,5, 92,true),
+  ('JED','King Abdulaziz International', 'Jeddah','SA',              21.6796,  39.1565,   48,1, 70,true),
+  ('SIN','Singapore Changi',            'Singapore','SG',             1.3592, 103.9894,   22,4,130,true),
+  ('HND','Tokyo Haneda',                'Tokyo','JP',                35.5523, 139.7797,   35,4,113,true),
+  ('NRT','Tokyo Narita',                'Tokyo','JP',                35.7647, 140.3864,  141,3, 97,true),
+  ('KIX','Osaka Kansai International',  'Osaka','JP',                34.4347, 135.2440,    7,2, 80,true),
+  ('BKK','Suvarnabhumi International',  'Bangkok','TH',              13.6900, 100.7501,    5,1,120,true),
+  ('KUL','Kuala Lumpur International',  'Kuala Lumpur','MY',          2.7456, 101.7099,   69,2, 80,true),
+  ('HKG','Hong Kong International',     'Hong Kong','HK',             22.3080, 113.9185,   28,1,288,true),
+  ('PVG','Shanghai Pudong International','Shanghai','CN',             31.1443, 121.8083,   13,2,228,true),
+  ('PEK','Beijing Capital International','Beijing','CN',              40.0799, 116.6031,  116,3,314,true),
+  ('ICN','Incheon International',       'Seoul','KR',                 37.4602, 126.4407,   23,2,224,true),
+  ('CMB','Bandaranaike International',  'Colombo','LK',               7.1808,  79.8841,   30,1, 24,true),
+  ('DAC','Hazrat Shahjalal International','Dhaka','BD',               23.8433,  90.3979,   30,1, 24,true),
+  ('KHI','Jinnah International',        'Karachi','PK',               24.9065,  67.1608,  100,2, 42,true),
+  ('MNL','Ninoy Aquino International',  'Manila','PH',                14.5086, 121.0194,   75,4, 50,true),
+  ('CGK','Soekarno Hatta International','Jakarta','ID',               -6.1256, 106.6558,   34,3,114,true),
+  ('SGN','Tan Son Nhat International',  'Ho Chi Minh','VN',           10.8188, 106.6520,    9,2, 50,true),
+  ('CAI','Cairo International',         'Cairo','EG',                 30.1219,  31.4056,  382,3, 68,true),
+  ('JNB','O R Tambo International',     'Johannesburg','ZA',         -26.1392,  28.2460, 5558,2, 90,true),
+  ('CPT','Cape Town International',     'Cape Town','ZA',            -33.9649,  18.6017,  151,1, 32,true),
+  ('NBO','Jomo Kenyatta International', 'Nairobi','KE',               -1.3192,  36.9275, 5330,1, 28,true),
+  ('LOS','Murtala Muhammed International','Lagos','NG',                6.5774,   3.3216,  135,2, 34,true),
+  ('ADD','Addis Ababa Bole International','Addis Ababa','ET',          8.9779,  38.7993, 7630,2, 40,true),
+  ('CMN','Mohammed V International',    'Casablanca','MA',            33.3675,  -7.5900,  656,2, 36,true),
+  ('YYZ','Toronto Pearson International','Toronto','CA',              43.6777, -79.6248,  569,3,164,true),
+  ('YVR','Vancouver International',     'Vancouver','CA',             49.1967,-123.1815,   14,3, 75,true),
+  ('YUL','Montreal Trudeau International','Montreal','CA',            45.4706, -73.7408,  118,2, 60,true),
+  ('MEX','Mexico City International',   'Mexico City','MX',           19.4363, -99.0721, 7316,2, 74,true),
+  ('GRU','Sao Paulo Guarulhos International','Sao Paulo','BR',       -23.4356, -46.4731, 2459,3, 96,true),
+  ('GIG','Rio de Janeiro Galeao',       'Rio de Janeiro','BR',       -22.8099, -43.2505,   28,2, 84,true),
+  ('EZE','Buenos Aires Ezeiza',         'Buenos Aires','AR',         -34.8222, -58.5358,   66,1, 74,true),
+  ('BOG','El Dorado International',     'Bogota','CO',                 4.7016, -74.1469, 8361,2, 60,true),
+  ('SCL','Santiago International',      'Santiago','CL',             -33.3930, -70.7858, 1555,1, 72,true),
+  ('SYD','Sydney Kingsford Smith',      'Sydney','AU',               -33.9461, 151.1772,   21,3, 59,true),
+  ('MEL','Melbourne Airport',           'Melbourne','AU',            -37.6690, 144.8410,  434,4, 76,true),
+  ('BNE','Brisbane Airport',            'Brisbane','AU',             -27.3842, 153.1175,   13,2, 44,true),
+  ('PER','Perth Airport',               'Perth','AU',                -31.9403, 115.9670,   67,4, 52,true),
+  ('AKL','Auckland Airport',            'Auckland','NZ',             -37.0082, 174.7850,   23,2, 36,true)
+) AS v(code, name, city_name, ctry, lat, lon, elev, terms, gates, intl)
+JOIN cities c ON c.city_name = v.city_name AND c.country_code = v.ctry
+ON CONFLICT (airport_code) DO NOTHING;
+
+
+-- ============================================================
+-- STEP 4: AIRLINES (30 airlines)
+-- ============================================================
+INSERT INTO airlines (airline_code, airline_name, country_code, hub_airport, founded_year) VALUES
+('AI', 'Air India',             'IN', 'DEL', 1932),
+('6E', 'IndiGo',                'IN', 'DEL', 2006),
+('UK', 'Vistara',               'IN', 'DEL', 2013),
+('SG', 'SpiceJet',              'IN', 'DEL', 2005),
+('IX', 'Air India Express',     'IN', 'BOM', 2005),
+('EK', 'Emirates',              'AE', 'DXB', 1985),
+('EY', 'Etihad Airways',        'AE', 'AUH', 2003),
+('QR', 'Qatar Airways',         'QA', 'DOH', 1993),
+('SV', 'Saudia',                'SA', 'RUH', 1945),
+('SQ', 'Singapore Airlines',   'SG', 'SIN', 1947),
+('MH', 'Malaysia Airlines',    'MY', 'KUL', 1947),
+('TG', 'Thai Airways',         'TH', 'BKK', 1960),
+('CX', 'Cathay Pacific',       'HK', 'HKG', 1946),
+('NH', 'All Nippon Airways',   'JP', 'HND', 1952),
+('JL', 'Japan Airlines',       'JP', 'NRT', 1951),
+('KE', 'Korean Air',           'KR', 'ICN', 1969),
+('BA', 'British Airways',      'GB', 'LHR', 1974),
+('LH', 'Lufthansa',            'DE', 'FRA', 1953),
+('AF', 'Air France',           'FR', 'CDG', 1933),
+('KL', 'KLM Royal Dutch',      'NL', 'AMS', 1919),
+('TK', 'Turkish Airlines',     'TR', 'IST', 1933),
+('IB', 'Iberia',               'ES', 'MAD', 1927),
+('AZ', 'Alitalia',             'IT', 'FCO', 1946),
+('LX', 'Swiss International',  'CH', 'ZRH', 2002),
+('UA', 'United Airlines',      'US', 'ORD', 1926),
+('AA', 'American Airlines',    'US', 'DFW', 1930),
+('DL', 'Delta Air Lines',      'US', 'ATL', 1924),
+('QF', 'Qantas',               'AU', 'SYD', 1920),
+('ET', 'Ethiopian Airlines',   'ET', 'ADD', 1945),
+('G8', 'Go First',             'IN', 'BOM', 2005)
+ON CONFLICT (airline_code) DO NOTHING;
+
+
+-- ============================================================
+-- STEP 5: FLIGHTS (300+ routes covering global network)
+-- ============================================================
+INSERT INTO flights (flight_number, airline_code, origin_airport, dest_airport,
+    departure_time, arrival_time, duration_minutes, distance_km, base_price_usd, days_of_week)
 VALUES
-    ('IN', 'India',          'Asia'),
-    ('US', 'United States',  'Americas'),
-    ('GB', 'United Kingdom', 'Europe'),
-    ('AE', 'UAE',            'Asia'),
-    ('SG', 'Singapore',      'Asia'),
-    ('DE', 'Germany',        'Europe'),
-    ('AU', 'Australia',      'Oceania'),
-    ('JP', 'Japan',          'Asia');
+-- ── INDIA DOMESTIC ──────────────────────────────────────────
+('AI-101', 'AI','BOM','DEL','06:00','08:10',130, 1148, 85,'1111111'),
+('AI-102', 'AI','DEL','BOM','09:00','11:10',130, 1148, 85,'1111111'),
+('AI-103', 'AI','BOM','DEL','13:00','15:10',130, 1148, 88,'1111111'),
+('AI-104', 'AI','DEL','BOM','16:00','18:10',130, 1148, 88,'1111111'),
+('AI-105', 'AI','BOM','DEL','20:00','22:10',130, 1148, 82,'1111111'),
+('AI-201', 'AI','BOM','BLR','07:00','08:45',105,  984, 65,'1111111'),
+('AI-202', 'AI','BLR','BOM','10:00','11:45',105,  984, 65,'1111111'),
+('AI-203', 'AI','BOM','BLR','14:00','15:45',105,  984, 68,'1111111'),
+('AI-204', 'AI','BLR','BOM','17:00','18:45',105,  984, 68,'1111111'),
+('AI-301', 'AI','DEL','BLR','06:30','09:00',150, 1740, 95,'1111111'),
+('AI-302', 'AI','BLR','DEL','10:30','13:00',150, 1740, 95,'1111111'),
+('AI-401', 'AI','BOM','MAA','08:00','10:05',125, 1028, 75,'1111111'),
+('AI-402', 'AI','MAA','BOM','11:30','13:35',125, 1028, 75,'1111111'),
+('AI-501', 'AI','DEL','MAA','07:00','09:45',165, 1755,100,'1111111'),
+('AI-502', 'AI','MAA','DEL','11:00','13:45',165, 1755,100,'1111111'),
+('AI-601', 'AI','BOM','HYD','09:00','10:25', 85,  711, 55,'1111111'),
+('AI-602', 'AI','HYD','BOM','12:00','13:25', 85,  711, 55,'1111111'),
+('AI-701', 'AI','DEL','HYD','08:00','10:10',130, 1253, 80,'1111111'),
+('AI-702', 'AI','HYD','DEL','11:30','13:40',130, 1253, 80,'1111111'),
+('AI-801', 'AI','BOM','CCU','06:00','08:30',150, 1660, 90,'1111111'),
+('AI-802', 'AI','CCU','BOM','10:00','12:30',150, 1660, 90,'1111111'),
+('AI-901', 'AI','DEL','CCU','07:30','09:30',120, 1305, 75,'1111111'),
+('AI-902', 'AI','CCU','DEL','11:00','13:00',120, 1305, 75,'1111111'),
+('6E-101', '6E','BOM','DEL','05:30','07:40',130, 1148, 55,'1111111'),
+('6E-102', '6E','DEL','BOM','08:30','10:40',130, 1148, 55,'1111111'),
+('6E-103', '6E','BOM','DEL','12:00','14:10',130, 1148, 58,'1111111'),
+('6E-104', '6E','DEL','BOM','15:00','17:10',130, 1148, 58,'1111111'),
+('6E-105', '6E','BOM','DEL','19:00','21:10',130, 1148, 52,'1111111'),
+('6E-201', '6E','BOM','BLR','06:00','07:45',105,  984, 48,'1111111'),
+('6E-202', '6E','BLR','BOM','09:00','10:45',105,  984, 48,'1111111'),
+('6E-301', '6E','BOM','MAA','07:30','09:35',125, 1028, 55,'1111111'),
+('6E-302', '6E','MAA','BOM','11:00','13:05',125, 1028, 55,'1111111'),
+('6E-401', '6E','DEL','BLR','06:00','08:30',150, 1740, 72,'1111111'),
+('6E-402', '6E','BLR','DEL','10:00','12:30',150, 1740, 72,'1111111'),
+('6E-501', '6E','BOM','HYD','08:00','09:25', 85,  711, 42,'1111111'),
+('6E-502', '6E','HYD','BOM','11:00','12:25', 85,  711, 42,'1111111'),
+('6E-601', '6E','DEL','MAA','06:30','09:15',165, 1755, 78,'1111111'),
+('6E-602', '6E','MAA','DEL','10:30','13:15',165, 1755, 78,'1111111'),
+('6E-701', '6E','BLR','MAA','07:00','07:55', 55,  336, 32,'1111111'),
+('6E-702', '6E','MAA','BLR','09:30','10:25', 55,  336, 32,'1111111'),
+('6E-801', '6E','BLR','HYD','08:00','09:00', 60,  500, 35,'1111111'),
+('6E-802', '6E','HYD','BLR','11:00','12:00', 60,  500, 35,'1111111'),
+('6E-901', '6E','DEL','CCU','07:00','09:00',120, 1305, 58,'1111111'),
+('6E-902', '6E','CCU','DEL','10:30','12:30',120, 1305, 58,'1111111'),
+('UK-101', 'UK','BOM','DEL','07:00','09:10',130, 1148, 90,'1111111'),
+('UK-102', 'UK','DEL','BOM','10:00','12:10',130, 1148, 90,'1111111'),
+('UK-201', 'UK','BOM','BLR','08:00','09:45',105,  984, 70,'1111111'),
+('UK-202', 'UK','BLR','BOM','11:00','12:45',105,  984, 70,'1111111'),
+('SG-101', 'SG','BOM','DEL','06:30','08:40',130, 1148, 52,'1111110'),
+('SG-102', 'SG','DEL','BOM','09:30','11:40',130, 1148, 52,'1111110'),
+('AI-1001','AI','BOM','COK','10:00','11:40',100,  910, 62,'1111111'),
+('AI-1002','AI','COK','BOM','13:00','14:40',100,  910, 62,'1111111'),
+('AI-1101','AI','DEL','AMD','08:00','09:35', 95,  890, 58,'1111111'),
+('AI-1102','AI','AMD','DEL','11:00','12:35', 95,  890, 58,'1111111'),
+('AI-1201','AI','BOM','GOI','09:30','10:30', 60,  462, 45,'1111111'),
+('AI-1202','AI','GOI','BOM','12:00','13:00', 60,  462, 45,'1111111'),
 
--- ─────────────────────────────────────────
--- CITIES (10 rows)
--- ─────────────────────────────────────────
-INSERT INTO cities (city_name, country_code, latitude, longitude, timezone)
-VALUES
-    ('Mumbai',    'IN',  19.076090,   72.877426, 'Asia/Kolkata'),
-    ('Delhi',     'IN',  28.613939,   77.209023, 'Asia/Kolkata'),
-    ('New York',  'US',  40.712776,  -74.005974, 'America/New_York'),
-    ('London',    'GB',  51.507351,   -0.127758, 'Europe/London'),
-    ('Dubai',     'AE',  25.204849,   55.270782, 'Asia/Dubai'),
-    ('Singapore', 'SG',   1.352083,  103.819836, 'Asia/Singapore'),
-    ('Frankfurt', 'DE',  50.110922,    8.682127, 'Europe/Berlin'),
-    ('Sydney',    'AU', -33.868820,  151.209296, 'Australia/Sydney'),
-    ('Tokyo',     'JP',  35.689487,  139.691711, 'Asia/Tokyo'),
-    ('Bengaluru', 'IN',  12.971599,   77.594566, 'Asia/Kolkata');
+-- ── INDIA TO MIDDLE EAST ─────────────────────────────────────
+('EK-500', 'EK','BOM','DXB','02:00','04:30',150, 1930,180,'1111111'),
+('EK-501', 'EK','BOM','DXB','10:00','12:30',150, 1930,185,'1111111'),
+('EK-502', 'EK','BOM','DXB','22:00','00:30',150, 1930,175,'1111111'),
+('EK-510', 'EK','DXB','BOM','04:00','08:30',150, 1930,180,'1111111'),
+('EK-511', 'EK','DXB','BOM','14:00','18:30',150, 1930,185,'1111111'),
+('EK-520', 'EK','DEL','DXB','03:00','05:15',135, 2194,165,'1111111'),
+('EK-521', 'EK','DEL','DXB','11:00','13:15',135, 2194,170,'1111111'),
+('EK-522', 'EK','DEL','DXB','23:00','01:15',135, 2194,160,'1111111'),
+('EK-530', 'EK','DXB','DEL','07:00','11:15',135, 2194,165,'1111111'),
+('EK-531', 'EK','DXB','DEL','19:00','23:15',135, 2194,170,'1111111'),
+('EY-201', 'EY','BOM','AUH','01:00','03:10',130, 1851,160,'1111111'),
+('EY-202', 'EY','AUH','BOM','05:00','09:10',130, 1851,160,'1111111'),
+('EY-211', 'EY','DEL','AUH','03:00','05:00',120, 2196,155,'1111111'),
+('EY-212', 'EY','AUH','DEL','07:00','11:00',120, 2196,155,'1111111'),
+('QR-101', 'QR','BOM','DOH','03:00','05:00',120, 1986,170,'1111111'),
+('QR-102', 'QR','DOH','BOM','07:00','11:00',120, 1986,170,'1111111'),
+('QR-111', 'QR','DEL','DOH','02:00','04:10',130, 2313,165,'1111111'),
+('QR-112', 'QR','DOH','DEL','06:00','10:10',130, 2313,165,'1111111'),
+('QR-121', 'QR','BLR','DOH','04:00','06:30',150, 2510,175,'1111111'),
+('QR-122', 'QR','DOH','BLR','08:30','11:00',150, 2510,175,'1111111'),
+('AI-951', 'AI','BOM','DXB','14:00','16:30',150, 1930,162,'1111111'),
+('AI-952', 'AI','DXB','BOM','18:00','22:30',150, 1930,162,'1111111'),
+('AI-961', 'AI','DEL','DXB','23:00','01:15',135, 2194,158,'1111111'),
+('AI-962', 'AI','DXB','DEL','03:00','07:15',135, 2194,158,'1111111'),
+('IX-101', 'IX','BOM','DXB','18:00','20:20',140, 1930,135,'1111100'),
+('IX-102', 'IX','DXB','BOM','22:00','02:20',140, 1930,135,'1111100'),
+('IX-111', 'IX','COK','DXB','05:00','07:45',165, 2215,145,'1111111'),
+('IX-112', 'IX','DXB','COK','09:00','11:45',165, 2215,145,'1111111'),
+('SV-101', 'SV','DEL','RUH','03:00','06:30',210, 2784,175,'1111111'),
+('SV-102', 'SV','RUH','DEL','08:00','11:30',210, 2784,175,'1111111'),
+('SV-111', 'SV','BOM','JED','04:00','07:00',180, 2757,170,'1111111'),
+('SV-112', 'SV','JED','BOM','09:00','12:00',180, 2757,170,'1111111'),
 
--- ─────────────────────────────────────────
--- AIRPORTS (10 rows)
--- city_id matches insertion order above:
--- 1=Mumbai, 2=Delhi, 3=New York, 4=London
--- 5=Dubai, 6=Singapore, 7=Frankfurt
--- 8=Sydney, 9=Tokyo, 10=Bengaluru
--- ─────────────────────────────────────────
-INSERT INTO airports (
-    airport_code, airport_name, city_id,
-    latitude, longitude, elevation_ft,
-    num_terminals, num_gates, is_international
-)
-VALUES
-    ('BOM', 'Chhatrapati Shivaji Maharaj Intl', 1,  19.088700,  72.867919,   37, 2,  72, TRUE),
-    ('DEL', 'Indira Gandhi International',      2,  28.556160,  77.100140,  777, 3,  78, TRUE),
-    ('JFK', 'John F Kennedy International',     3,  40.639722, -73.778889,   13, 6, 128, TRUE),
-    ('LHR', 'London Heathrow',                  4,  51.477500,  -0.461389,   83, 5, 115, TRUE),
-    ('DXB', 'Dubai International',              5,  25.252778,  55.364444,   62, 3,  98, TRUE),
-    ('SIN', 'Singapore Changi',                 6,   1.359167, 103.989444,   22, 4, 130, TRUE),
-    ('FRA', 'Frankfurt am Main',                7,  50.026421,   8.543125,  364, 2,  75, TRUE),
-    ('SYD', 'Sydney Kingsford Smith',           8, -33.946111, 151.177222,   21, 3,  59, TRUE),
-    ('HND', 'Tokyo Haneda',                     9,  35.552258, 139.779694,   35, 4, 113, TRUE),
-    ('BLR', 'Kempegowda International',        10,  13.198889,  77.705556, 3000, 2,  50, TRUE);
+-- ── MIDDLE EAST TO EUROPE ─────────────────────────────────────
+('EK-201', 'EK','DXB','LHR','08:00','13:00',420, 5490,520,'1111111'),
+('EK-202', 'EK','DXB','LHR','22:00','03:00',420, 5490,510,'1111111'),
+('EK-211', 'EK','LHR','DXB','09:00','19:30',390, 5490,520,'1111111'),
+('EK-221', 'EK','DXB','CDG','07:30','12:30',420, 5243,510,'1111111'),
+('EK-222', 'EK','CDG','DXB','14:00','23:00',420, 5243,510,'1111111'),
+('EK-231', 'EK','DXB','FRA','08:00','12:45',405, 4837,490,'1111111'),
+('EK-232', 'EK','FRA','DXB','14:00','22:45',405, 4837,490,'1111111'),
+('EK-241', 'EK','DXB','AMS','07:00','12:30',450, 5140,505,'1111111'),
+('EK-242', 'EK','AMS','DXB','13:30','23:00',450, 5140,505,'1111111'),
+('EK-251', 'EK','DXB','IST','08:00','11:30',270, 3381,380,'1111111'),
+('EK-252', 'EK','IST','DXB','13:00','18:30',270, 3381,380,'1111111'),
+('EK-261', 'EK','DXB','MAD','08:30','14:00',450, 5835,535,'1111111'),
+('EK-262', 'EK','MAD','DXB','15:30','01:00',450, 5835,535,'1111111'),
+('EY-301', 'EY','AUH','LHR','09:00','14:00',420, 5461,510,'1111111'),
+('EY-302', 'EY','LHR','AUH','15:00','01:00',420, 5461,510,'1111111'),
+('EY-311', 'EY','AUH','CDG','08:30','13:30',420, 5246,505,'1111111'),
+('EY-312', 'EY','CDG','AUH','14:30','23:30',420, 5246,505,'1111111'),
+('QR-201', 'QR','DOH','LHR','08:00','13:00',420, 5739,530,'1111111'),
+('QR-202', 'QR','LHR','DOH','14:00','23:00',420, 5739,530,'1111111'),
+('QR-211', 'QR','DOH','CDG','07:30','12:30',420, 5482,515,'1111111'),
+('QR-212', 'QR','CDG','DOH','14:30','23:30',420, 5482,515,'1111111'),
+('QR-221', 'QR','DOH','FRA','08:00','12:30',390, 4787,495,'1111111'),
+('QR-222', 'QR','FRA','DOH','14:00','22:30',390, 4787,495,'1111111'),
+('TK-101', 'TK','IST','LHR','07:00','10:00',240, 2510,320,'1111111'),
+('TK-102', 'TK','LHR','IST','12:00','18:00',240, 2510,320,'1111111'),
+('TK-111', 'TK','IST','CDG','08:00','10:30',210, 2243,295,'1111111'),
+('TK-112', 'TK','CDG','IST','12:00','16:30',210, 2243,295,'1111111'),
+('TK-121', 'TK','IST','FRA','09:00','11:00',180, 1866,270,'1111111'),
+('TK-122', 'TK','FRA','IST','13:00','17:00',180, 1866,270,'1111111'),
+('TK-131', 'TK','IST','AMS','08:30','11:30',210, 2213,285,'1111111'),
+('TK-132', 'TK','AMS','IST','13:00','18:00',210, 2213,285,'1111111'),
+('TK-141', 'TK','IST','MAD','09:00','12:30',210, 2901,300,'1111111'),
+('TK-142', 'TK','MAD','IST','14:00','19:30',210, 2901,300,'1111111'),
 
--- ─────────────────────────────────────────
--- AIRLINES (10 rows)
--- ─────────────────────────────────────────
-INSERT INTO airlines
-    (airline_code, airline_name, country_code, hub_airport, founded_year)
-VALUES
-    ('AI', 'Air India',           'IN', 'DEL', 1932),
-    ('6E', 'IndiGo',              'IN', 'DEL', 2006),
-    ('EK', 'Emirates',            'AE', 'DXB', 1985),
-    ('SQ', 'Singapore Airlines',  'SG', 'SIN', 1947),
-    ('LH', 'Lufthansa',           'DE', 'FRA', 1953),
-    ('BA', 'British Airways',     'GB', 'LHR', 1974),
-    ('QF', 'Qantas',              'AU', 'SYD', 1920),
-    ('NH', 'All Nippon Airways',  'JP', 'HND', 1952),
-    ('UA', 'United Airlines',     'US', 'JFK', 1926),
-    ('IX', 'Air India Express',   'IN', 'BOM', 2005);
+-- ── MIDDLE EAST TO USA ──────────────────────────────────────
+('EK-203', 'EK','DXB','JFK','09:00','15:30',810,11021,850,'1111111'),
+('EK-204', 'EK','JFK','DXB','23:00','19:00',810,11021,850,'1111111'),
+('EK-213', 'EK','DXB','LAX','08:00','15:30',870,13383,920,'1111111'),
+('EK-214', 'EK','LAX','DXB','23:30','07:00',870,13383,920,'1111111'),
+('QR-301', 'QR','DOH','JFK','09:00','16:00',840,11572,870,'1111111'),
+('QR-302', 'QR','JFK','DOH','22:00','18:00',840,11572,870,'1111111'),
+('EY-401', 'EY','AUH','JFK','10:00','16:00',780,11004,840,'1111111'),
+('EY-402', 'EY','JFK','AUH','22:00','18:00',780,11004,840,'1111111'),
 
--- ─────────────────────────────────────────
--- FLIGHTS (19 rows)
--- ─────────────────────────────────────────
-INSERT INTO flights (
-    flight_number, airline_code, origin_airport, dest_airport,
-    departure_time, arrival_time, duration_minutes,
-    distance_km, base_price_usd, days_of_week
-)
-VALUES
-    -- India domestic
-    ('AI-101',  'AI', 'BOM', 'DEL', '06:00', '08:10', 130,  1148,  85.00, '1111111'),
-    ('6E-204',  '6E', 'DEL', 'BOM', '09:00', '11:15', 135,  1148,  72.00, '1111111'),
-    ('AI-102',  'AI', 'DEL', 'BLR', '07:00', '09:30', 150,  1740,  95.00, '1111100'),
-    ('6E-301',  '6E', 'BOM', 'BLR', '08:00', '09:45', 105,   984,  55.00, '1111111'),
+-- ── INDIA TO SOUTHEAST ASIA ──────────────────────────────────
+('SQ-401', 'SQ','BOM','SIN','10:00','20:00',360, 4356,310,'1111111'),
+('SQ-402', 'SQ','SIN','BOM','21:00','23:00',360, 4356,310,'1111111'),
+('SQ-411', 'SQ','DEL','SIN','11:00','21:00',360, 4148,295,'1111111'),
+('SQ-412', 'SQ','SIN','DEL','22:30','02:30',360, 4148,295,'1111111'),
+('SQ-421', 'SQ','BLR','SIN','09:00','17:00',300, 3761,280,'1111111'),
+('SQ-422', 'SQ','SIN','BLR','19:00','21:00',300, 3761,280,'1111111'),
+('MH-101', 'MH','BOM','KUL','09:00','19:30',330, 4104,285,'1111111'),
+('MH-102', 'MH','KUL','BOM','21:00','23:30',330, 4104,285,'1111111'),
+('MH-111', 'MH','DEL','KUL','08:00','17:30',330, 3889,275,'1111111'),
+('MH-112', 'MH','KUL','DEL','19:30','23:00',330, 3889,275,'1111111'),
+('TG-101', 'TG','BOM','BKK','08:00','17:00',300, 3979,290,'1111111'),
+('TG-102', 'TG','BKK','BOM','19:00','22:00',300, 3979,290,'1111111'),
+('TG-111', 'TG','DEL','BKK','07:00','14:00',270, 2952,265,'1111111'),
+('TG-112', 'TG','BKK','DEL','16:00','19:00',270, 2952,265,'1111111'),
+('AI-971', 'AI','BOM','DXB','21:00','23:15',135, 1930,170,'1111111'),
+('AI-972', 'AI','DXB','BOM','01:00','05:15',135, 1930,170,'1111111'),
+('IX-191', 'IX','BOM','DXB','18:00','20:20',140, 1930,145,'1111100'),
+('AI-131', 'AI','DEL','BOM','14:00','16:10',130, 1148, 68,'1111111'),
 
-    -- India to Middle East
-    ('EK-500',  'EK', 'BOM', 'DXB', '14:00', '16:30', 150,  1930, 180.00, '1111111'),
-    ('AI-960',  'AI', 'DEL', 'DXB', '03:00', '05:15', 135,  2194, 165.00, '1111111'),
+-- ── SOUTHEAST ASIA TO EUROPE ──────────────────────────────────
+('SQ-317', 'SQ','SIN','LHR','23:00','05:30',750,10840,680,'1111111'),
+('SQ-318', 'SQ','LHR','SIN','22:00','17:00',750,10840,680,'1111111'),
+('SQ-321', 'SQ','SIN','CDG','23:30','06:00',750,10737,670,'1111111'),
+('SQ-322', 'SQ','CDG','SIN','13:00','07:00',750,10737,670,'1111111'),
+('SQ-331', 'SQ','SIN','FRA','22:00','05:00',780,10200,660,'1111111'),
+('SQ-332', 'SQ','FRA','SIN','14:00','07:30',780,10200,660,'1111111'),
+('MH-201', 'MH','KUL','LHR','22:00','04:30',750,10558,650,'1111111'),
+('MH-202', 'MH','LHR','KUL','13:00','07:00',750,10558,650,'1111111'),
+('TG-201', 'TG','BKK','LHR','23:00','05:30',750, 9560,640,'1111111'),
+('TG-202', 'TG','LHR','BKK','11:00','05:30',750, 9560,640,'1111111'),
+('CX-101', 'CX','HKG','LHR','23:30','05:30',720, 9648,660,'1111111'),
+('CX-102', 'CX','LHR','HKG','11:30','06:00',720, 9648,660,'1111111'),
+('CX-111', 'CX','HKG','FRA','00:30','06:30',720, 9198,640,'1111111'),
+('CX-112', 'CX','FRA','HKG','14:00','08:30',720, 9198,640,'1111111'),
 
-    -- Middle East to Europe/US
-    ('EK-201',  'EK', 'DXB', 'LHR', '08:00', '13:00', 420,  5490, 520.00, '1111111'),
-    ('EK-203',  'EK', 'DXB', 'JFK', '09:00', '15:30', 810, 11020, 850.00, '1111111'),
+-- ── SOUTHEAST ASIA TO USA ────────────────────────────────────
+('SQ-025', 'SQ','SIN','JFK','00:05','06:05',1080,15332,920,'1111100'),
+('SQ-026', 'SQ','JFK','SIN','11:00','17:00',1080,15332,920,'1111100'),
+('SQ-031', 'SQ','SIN','LAX','08:35','08:35',1010,14113,895,'1111111'),
+('SQ-032', 'SQ','LAX','SIN','23:00','06:00',1010,14113,895,'1111111'),
+('CX-201', 'CX','HKG','JFK','01:00','05:00', 960,12985,880,'1111111'),
+('CX-202', 'CX','JFK','HKG','00:55','04:55', 960,12985,880,'1111111'),
+('NH-101', 'NH','HND','JFK','11:00','10:00', 840,10836,820,'1111111'),
+('NH-102', 'NH','JFK','HND','13:00','15:00', 840,10836,820,'1111111'),
+('JL-101', 'JL','NRT','JFK','11:00','10:30', 840,10836,815,'1111111'),
+('JL-102', 'JL','JFK','NRT','13:30','16:00', 840,10836,815,'1111111'),
 
-    -- India to Singapore
-    ('SQ-401',  'SQ', 'BOM', 'SIN', '10:00', '20:00', 360,  4356, 310.00, '1111111'),
-    ('SQ-403',  'SQ', 'DEL', 'SIN', '11:00', '21:00', 360,  4150, 290.00, '1111111'),
+-- ── INDIA TO EAST ASIA ───────────────────────────────────────
+('AI-3101','AI','DEL','PEK','06:00','14:00',480, 3788,380,'1111110'),
+('AI-3102','AI','PEK','DEL','16:00','20:00',480, 3788,380,'1111110'),
+('AI-3201','AI','BOM','HKG','09:00','17:00',420, 5193,390,'1111111'),
+('AI-3202','AI','HKG','BOM','19:00','21:00',420, 5193,390,'1111111'),
+('AI-3301','AI','DEL','HND','07:00','19:00',600, 5853,450,'1111100'),
+('AI-3302','AI','HND','DEL','21:00','01:00',600, 5853,450,'1111100'),
 
-    -- Singapore to rest of world
-    ('SQ-317',  'SQ', 'SIN', 'LHR', '23:00', '05:30', 750, 10840, 680.00, '1111111'),
-    ('SQ-025',  'SQ', 'SIN', 'JFK', '00:05', '06:05',1080, 15332, 920.00, '1111100'),
+-- ── EUROPE HUB-TO-HUB ────────────────────────────────────────
+('BA-101', 'BA','LHR','CDG','07:00','09:15', 75,  341,145,'1111111'),
+('BA-102', 'BA','CDG','LHR','11:00','11:15', 75,  341,145,'1111111'),
+('BA-111', 'BA','LHR','FRA','07:30','10:00',120,  657,180,'1111111'),
+('BA-112', 'BA','FRA','LHR','11:30','12:00',120,  657,180,'1111111'),
+('BA-121', 'BA','LHR','AMS','08:00','10:00', 80,  369,155,'1111111'),
+('BA-122', 'BA','AMS','LHR','12:00','12:00', 80,  369,155,'1111111'),
+('BA-131', 'BA','LHR','MAD','08:00','11:00',150, 1264,215,'1111111'),
+('BA-132', 'BA','MAD','LHR','13:00','14:00',150, 1264,215,'1111111'),
+('BA-141', 'BA','LHR','FCO','07:00','11:00',160, 1434,225,'1111111'),
+('BA-142', 'BA','FCO','LHR','13:00','14:30',160, 1434,225,'1111111'),
+('BA-151', 'BA','LHR','IST','08:00','13:00',240, 2510,290,'1111111'),
+('BA-152', 'BA','IST','LHR','14:00','16:00',240, 2510,290,'1111111'),
+('LH-101', 'LH','FRA','LHR','07:00','07:30',120,  657,175,'1111111'),
+('LH-102', 'LH','LHR','FRA','09:30','12:00',120,  657,175,'1111111'),
+('LH-111', 'LH','FRA','CDG','07:00','08:15', 75,  480,140,'1111111'),
+('LH-112', 'LH','CDG','FRA','10:00','11:15', 75,  480,140,'1111111'),
+('LH-121', 'LH','FRA','AMS','08:00','09:00', 60,  390,130,'1111111'),
+('LH-122', 'LH','AMS','FRA','11:00','12:00', 60,  390,130,'1111111'),
+('LH-131', 'LH','MUC','LHR','07:00','08:30',150,  918,190,'1111111'),
+('LH-132', 'LH','LHR','MUC','10:30','13:30',150,  918,190,'1111111'),
+('LH-141', 'LH','FRA','IST','08:00','11:30',210, 2236,265,'1111111'),
+('LH-142', 'LH','IST','FRA','13:30','15:00',210, 2236,265,'1111111'),
+('LH-151', 'LH','MUC','CDG','08:00','09:30', 90,  693,160,'1111111'),
+('LH-152', 'LH','CDG','MUC','11:00','13:30', 90,  693,160,'1111111'),
+('AF-101', 'AF','CDG','LHR','07:00','07:15', 75,  341,140,'1111111'),
+('AF-102', 'AF','LHR','CDG','09:00','11:15', 75,  341,140,'1111111'),
+('AF-111', 'AF','CDG','FRA','07:30','09:00', 90,  480,155,'1111111'),
+('AF-112', 'AF','FRA','CDG','10:30','12:00', 90,  480,155,'1111111'),
+('AF-121', 'AF','CDG','MAD','08:00','10:15',135, 1053,195,'1111111'),
+('AF-122', 'AF','MAD','CDG','12:00','14:15',135, 1053,195,'1111111'),
+('AF-131', 'AF','CDG','FCO','07:30','09:30',120,  886,185,'1111111'),
+('AF-132', 'AF','FCO','CDG','11:00','13:00',120,  886,185,'1111111'),
+('KL-101', 'KL','AMS','LHR','07:00','07:00', 60,  369,145,'1111111'),
+('KL-102', 'KL','LHR','AMS','09:00','11:00', 60,  369,145,'1111111'),
+('KL-111', 'KL','AMS','CDG','07:30','08:30', 60,  431,130,'1111111'),
+('KL-112', 'KL','CDG','AMS','10:30','11:30', 60,  431,130,'1111111'),
+('KL-121', 'KL','AMS','FRA','08:00','09:30', 90,  390,145,'1111111'),
+('KL-122', 'KL','FRA','AMS','11:00','12:30', 90,  390,145,'1111111'),
+('IB-101', 'IB','MAD','LHR','07:00','08:30', 90, 1264,175,'1111111'),
+('IB-102', 'IB','LHR','MAD','10:00','13:30', 90, 1264,175,'1111111'),
+('IB-111', 'IB','MAD','CDG','08:00','10:00', 90, 1053,165,'1111111'),
+('IB-112', 'IB','CDG','MAD','12:00','14:00', 90, 1053,165,'1111111'),
+('AZ-101', 'AZ','FCO','LHR','08:00','10:00',160, 1434,195,'1111111'),
+('AZ-102', 'AZ','LHR','FCO','12:00','16:00',160, 1434,195,'1111111'),
+('LX-101', 'LX','ZRH','LHR','07:00','08:00', 90,  784,170,'1111111'),
+('LX-102', 'LX','LHR','ZRH','10:00','13:00', 90,  784,170,'1111111'),
+('LX-111', 'LX','ZRH','FRA','07:30','08:30', 60,  220,125,'1111111'),
+('LX-112', 'LX','FRA','ZRH','10:00','11:00', 60,  220,125,'1111111'),
 
-    -- Europe routes
-    ('LH-757',  'LH', 'FRA', 'JFK', '10:30', '13:00', 510,  6200, 580.00, '1111111'),
-    ('BA-117',  'BA', 'LHR', 'JFK', '11:00', '14:00', 420,  5570, 560.00, '1111111'),
+-- ── EUROPE TO USA ────────────────────────────────────────────
+('BA-117', 'BA','LHR','JFK','11:00','14:00',420, 5570,560,'1111111'),
+('BA-118', 'BA','JFK','LHR','19:00','07:00',420, 5570,560,'1111111'),
+('BA-127', 'BA','LHR','LAX','11:30','14:30',660, 8757,720,'1111111'),
+('BA-128', 'BA','LAX','LHR','17:00','11:00',600, 8757,720,'1111111'),
+('BA-137', 'BA','LHR','ORD','09:30','12:30',540, 6348,620,'1111111'),
+('BA-138', 'BA','ORD','LHR','19:00','09:00',540, 6348,620,'1111111'),
+('BA-147', 'BA','LHR','MIA','11:00','15:00',570, 7118,650,'1111111'),
+('BA-148', 'BA','MIA','LHR','20:00','10:00',570, 7118,650,'1111111'),
+('LH-757', 'LH','FRA','JFK','10:30','13:00',510, 6200,580,'1111111'),
+('LH-758', 'LH','JFK','FRA','18:00','08:00',510, 6200,580,'1111111'),
+('LH-761', 'LH','FRA','LAX','10:00','13:00',660, 9324,720,'1111111'),
+('LH-762', 'LH','LAX','FRA','16:00','12:00',630, 9324,720,'1111111'),
+('LH-771', 'LH','MUC','JFK','10:00','13:30',540, 6466,590,'1111111'),
+('LH-772', 'LH','JFK','MUC','18:30','09:00',540, 6466,590,'1111111'),
+('AF-107', 'AF','CDG','JFK','10:30','13:00',510, 5836,575,'1111111'),
+('AF-108', 'AF','JFK','CDG','18:00','07:00',510, 5836,575,'1111111'),
+('AF-117', 'AF','CDG','LAX','11:00','14:00',660, 9112,710,'1111111'),
+('AF-118', 'AF','LAX','CDG','16:30','12:00',630, 9112,710,'1111111'),
+('KL-207', 'KL','AMS','JFK','10:00','12:30',510, 5866,575,'1111111'),
+('KL-208', 'KL','JFK','AMS','18:00','07:30',510, 5866,575,'1111111'),
+('UA-101', 'UA','JFK','LHR','22:00','09:00',480, 5570,545,'1111111'),
+('UA-102', 'UA','LHR','JFK','11:00','13:00',420, 5570,545,'1111111'),
+('UA-111', 'UA','ORD','LHR','21:00','10:00',540, 6348,590,'1111111'),
+('UA-112', 'UA','LHR','ORD','12:00','15:00',480, 6348,590,'1111111'),
+('AA-101', 'AA','JFK','LHR','23:00','10:00',480, 5570,540,'1111111'),
+('AA-102', 'AA','LHR','JFK','10:00','12:30',420, 5570,540,'1111111'),
+('AA-111', 'AA','DFW','LHR','21:30','12:00',540, 7650,600,'1111111'),
+('AA-112', 'AA','LHR','DFW','13:00','17:00',540, 7650,600,'1111111'),
+('DL-101', 'DL','ATL','LHR','21:00','10:30',570, 7123,610,'1111111'),
+('DL-102', 'DL','LHR','ATL','12:00','16:00',540, 7123,610,'1111111'),
+('DL-111', 'DL','JFK','CDG','22:00','11:00',510, 5836,570,'1111111'),
+('DL-112', 'DL','CDG','JFK','13:00','15:30',510, 5836,570,'1111111'),
 
-    -- To Australia
-    ('QF-001',  'QF', 'LHR', 'SYD', '21:00', '05:00',1415, 16993, 980.00, '0101010'),
-    ('SQ-221',  'SQ', 'SIN', 'SYD', '08:00', '17:30', 510,  6307, 420.00, '1111111'),
+-- ── USA DOMESTIC ─────────────────────────────────────────────
+('UA-201', 'UA','JFK','LAX','06:00','09:30',330, 3983,185,'1111111'),
+('UA-202', 'UA','LAX','JFK','11:00','19:30',330, 3983,185,'1111111'),
+('UA-211', 'UA','JFK','ORD','07:00','08:30',150, 1189,110,'1111111'),
+('UA-212', 'UA','ORD','JFK','10:00','13:30',150, 1189,110,'1111111'),
+('UA-221', 'UA','ORD','LAX','07:00','09:30',270, 2805,160,'1111111'),
+('UA-222', 'UA','LAX','ORD','12:00','18:00',270, 2805,160,'1111111'),
+('AA-201', 'AA','JFK','MIA','07:00','10:00',180, 1757,120,'1111111'),
+('AA-202', 'AA','MIA','JFK','12:00','15:00',180, 1757,120,'1111111'),
+('AA-211', 'AA','DFW','LAX','08:00','09:30',210, 1989,145,'1111111'),
+('AA-212', 'AA','LAX','DFW','12:00','16:30',210, 1989,145,'1111111'),
+('DL-201', 'DL','ATL','JFK','07:00','09:30',150, 1208,115,'1111111'),
+('DL-202', 'DL','JFK','ATL','12:00','14:30',150, 1208,115,'1111111'),
+('DL-211', 'DL','ATL','LAX','08:00','10:30',300, 3106,175,'1111111'),
+('DL-212', 'DL','LAX','ATL','13:00','20:30',300, 3106,175,'1111111'),
+('UA-231', 'UA','SFO','JFK','07:00','15:30',330, 4139,190,'1111111'),
+('UA-232', 'UA','JFK','SFO','08:00','11:30',330, 4139,190,'1111111'),
+('UA-241', 'UA','SEA','LAX','06:00','08:30',210, 1535,130,'1111111'),
+('UA-242', 'UA','LAX','SEA','11:00','13:30',210, 1535,130,'1111111'),
+('AA-221', 'AA','BOS','JFK','07:00','08:05', 65,  306, 65,'1111111'),
+('AA-222', 'AA','JFK','BOS','10:00','11:05', 65,  306, 65,'1111111'),
+('AA-231', 'AA','IAH','JFK','07:00','11:30',270, 2283,155,'1111111'),
+('AA-232', 'AA','JFK','IAH','13:00','16:30',210, 2283,155,'1111111'),
+('DL-221', 'DL','ATL','MIA','07:00','08:30', 90, 1090, 85,'1111111'),
+('DL-222', 'DL','MIA','ATL','10:00','11:30', 90, 1090, 85,'1111111'),
 
-    -- Competing flights on BOM→DXB (for window function demo)
-    ('AI-971',  'AI', 'BOM', 'DXB', '21:00', '23:15', 135,  1930, 170.00, '1111111'),
-    ('IX-191',  'IX', 'BOM', 'DXB', '18:00', '20:20', 140,  1930, 145.00, '1111100'),
+-- ── TO AUSTRALIA ─────────────────────────────────────────────
+('QF-001', 'QF','LHR','SYD','21:00','05:00',1415,16993,980,'0101010'),
+('QF-002', 'QF','SYD','LHR','11:00','05:00',1415,16993,980,'0101010'),
+('QF-011', 'QF','SIN','SYD','08:00','17:30', 510, 6307,420,'1111111'),
+('SQ-221', 'SQ','SIN','SYD','09:00','19:30', 510, 6307,420,'1111111'),
+('SQ-222', 'SQ','SYD','SIN','21:00','03:00', 510, 6307,420,'1111111'),
+('SQ-231', 'SQ','SIN','MEL','10:00','21:00', 480, 6053,410,'1111111'),
+('SQ-232', 'SQ','MEL','SIN','22:00','04:00', 480, 6053,410,'1111111'),
+('QF-021', 'QF','SYD','MEL','06:00','07:30',  90,  703, 65,'1111111'),
+('QF-022', 'QF','MEL','SYD','09:00','10:30',  90,  703, 65,'1111111'),
+('QF-031', 'QF','SYD','BNE','06:30','08:00',  90,  920, 68,'1111111'),
+('QF-032', 'QF','BNE','SYD','09:30','11:00',  90,  920, 68,'1111111'),
+('QF-041', 'QF','SYD','PER','07:00','11:00', 240, 3281,185,'1111111'),
+('QF-042', 'QF','PER','SYD','13:00','21:00', 240, 3281,185,'1111111'),
+('QF-051', 'QF','SYD','AKL','08:00','13:00', 180, 2153,210,'1111111'),
+('QF-052', 'QF','AKL','SYD','15:00','17:00', 180, 2153,210,'1111111'),
+('EK-601', 'EK','DXB','SYD','22:00','22:00', 840,12004,920,'1111111'),
+('EK-602', 'EK','SYD','DXB','23:00','05:30', 780,12004,920,'1111111'),
+('QF-061', 'QF','SYD','JFK','23:00','10:00', 990,16014,1050,'0100100'),
+('QF-062', 'QF','JFK','SYD','23:00','09:00', 990,16014,1050,'0100100'),
 
-    -- Competing flight on DEL→BOM
-    ('AI-131',  'AI', 'DEL', 'BOM', '14:00', '16:10', 130,  1148,  68.00, '1111111');
+-- ── AFRICA ROUTES ────────────────────────────────────────────
+('ET-101', 'ET','ADD','LHR','22:00','05:30', 510, 6149,520,'1111111'),
+('ET-102', 'ET','LHR','ADD','09:00','20:30', 510, 6149,520,'1111111'),
+('ET-111', 'ET','ADD','JNB','07:00','11:30', 270, 3765,310,'1111111'),
+('ET-112', 'ET','JNB','ADD','13:00','17:30', 270, 3765,310,'1111111'),
+('ET-121', 'ET','ADD','NBO','08:00','09:30',  90, 1164,120,'1111111'),
+('ET-122', 'ET','NBO','ADD','11:00','12:30',  90, 1164,120,'1111111'),
+('ET-131', 'ET','ADD','LOS','07:00','11:00', 240, 3551,290,'1111111'),
+('ET-132', 'ET','LOS','ADD','13:00','17:00', 240, 3551,290,'1111111'),
+('ET-141', 'ET','ADD','CAI','08:00','11:00', 180, 2706,240,'1111111'),
+('ET-142', 'ET','CAI','ADD','13:00','16:00', 180, 2706,240,'1111111'),
+('EK-701', 'EK','DXB','JNB','08:00','14:30', 510, 6994,580,'1111111'),
+('EK-702', 'EK','JNB','DXB','16:00','22:30', 510, 6994,580,'1111111'),
+('EK-711', 'EK','DXB','NBO','08:30','12:30', 240, 3673,360,'1111111'),
+('EK-712', 'EK','NBO','DXB','14:00','20:00', 240, 3673,360,'1111111'),
+('QR-401', 'QR','DOH','JNB','09:00','16:30', 510, 7332,590,'1111111'),
+('QR-402', 'QR','JNB','DOH','18:00','01:30', 510, 7332,590,'1111111'),
+('ET-201', 'ET','ADD','BOM','07:00','13:30', 270, 3451,290,'1111111'),
+('ET-202', 'ET','BOM','ADD','15:00','17:30', 270, 3451,290,'1111111'),
+('ET-211', 'ET','ADD','DEL','08:00','15:30', 330, 3798,310,'1111111'),
+('ET-212', 'ET','DEL','ADD','17:00','20:30', 330, 3798,310,'1111111'),
 
--- ─────────────────────────────────────────
--- FLIGHT PRICING
--- Multiple classes per flight
--- flight_id matches insertion order above
--- ─────────────────────────────────────────
+-- ── SOUTH AMERICA ROUTES ─────────────────────────────────────
+('AA-301', 'AA','MIA','GRU','23:00','09:00', 660, 7562,620,'1111111'),
+('AA-302', 'AA','GRU','MIA','11:00','19:00', 600, 7562,620,'1111111'),
+('AA-311', 'AA','JFK','GRU','21:00','09:00', 720, 7716,650,'1111111'),
+('AA-312', 'AA','GRU','JFK','11:00','21:00', 720, 7716,650,'1111111'),
+('AA-321', 'AA','MIA','BOG','07:00','10:30', 210, 2678,245,'1111111'),
+('AA-322', 'AA','BOG','MIA','13:00','16:30', 210, 2678,245,'1111111'),
+('AA-331', 'AA','MIA','EZE','23:00','10:00', 720, 8979,690,'1111111'),
+('AA-332', 'AA','EZE','MIA','12:00','21:00', 720, 8979,690,'1111111'),
+
+-- ── INDIA TO CANADA ──────────────────────────────────────────
+('AI-5001','AI','DEL','YYZ','02:00','08:00', 900,11338,780,'1111100'),
+('AI-5002','AI','YYZ','DEL','14:00','14:00', 900,11338,780,'1111100'),
+
+-- ── SOUTH ASIA ───────────────────────────────────────────────
+('SQ-501', 'SQ','CMB','SIN','08:00','16:00', 240, 2930,250,'1111111'),
+('SQ-502', 'SQ','SIN','CMB','18:00','20:00', 240, 2930,250,'1111111'),
+('AI-6001','AI','DEL','DAC','08:00','09:30',  90,  890, 85,'1111111'),
+('AI-6002','AI','DAC','DEL','11:00','12:30',  90,  890, 85,'1111111'),
+('AI-6101','AI','BOM','CMB','09:00','11:00', 120, 1450,115,'1111111'),
+('AI-6102','AI','CMB','BOM','13:00','15:00', 120, 1450,115,'1111111'),
+
+-- ── SOUTHEAST ASIA INTRA ─────────────────────────────────────
+('SQ-601', 'SQ','SIN','MNL','07:00','11:00', 180, 2388,195,'1111111'),
+('SQ-602', 'SQ','MNL','SIN','13:00','16:00', 180, 2388,195,'1111111'),
+('SQ-611', 'SQ','SIN','CGK','07:30','08:30',  90,  894,120,'1111111'),
+('SQ-612', 'SQ','CGK','SIN','10:30','12:30',  90,  894,120,'1111111'),
+('SQ-621', 'SQ','SIN','SGN','07:00','09:00', 120, 1147,145,'1111111'),
+('SQ-622', 'SQ','SGN','SIN','11:00','13:00', 120, 1147,145,'1111111'),
+('MH-301', 'MH','KUL','MNL','08:00','12:00', 180, 2663,190,'1111111'),
+('MH-302', 'MH','MNL','KUL','14:00','16:00', 180, 2663,190,'1111111'),
+('MH-311', 'MH','KUL','CGK','08:00','09:00',  90, 1176,115,'1111111'),
+('MH-312', 'MH','CGK','KUL','11:00','12:00',  90, 1176,115,'1111111'),
+
+-- ── EAST ASIA HUB ────────────────────────────────────────────
+('NH-201', 'NH','HND','LHR','11:00','15:30', 780, 9549,780,'1111111'),
+('NH-202', 'NH','LHR','HND','13:00','09:00', 720, 9549,780,'1111111'),
+('JL-201', 'JL','NRT','LHR','10:00','14:30', 780, 9535,775,'1111111'),
+('JL-202', 'JL','LHR','NRT','14:00','10:30', 750, 9535,775,'1111111'),
+('KE-101', 'KE','ICN','LHR','13:00','17:30', 780, 8870,760,'1111111'),
+('KE-102', 'KE','LHR','ICN','20:00','15:00', 750, 8870,760,'1111111'),
+('KE-111', 'KE','ICN','JFK','10:00','10:00', 780,11046,800,'1111111'),
+('KE-112', 'KE','JFK','ICN','12:00','16:00', 780,11046,800,'1111111'),
+('CX-301', 'CX','HKG','SIN','08:00','12:00', 150, 2583,220,'1111111'),
+('CX-302', 'CX','SIN','HKG','14:00','18:00', 150, 2583,220,'1111111'),
+('CX-311', 'CX','HKG','BKK','09:00','11:00', 120, 1722,185,'1111111'),
+('CX-312', 'CX','BKK','HKG','13:00','17:00', 120, 1722,185,'1111111'),
+('NH-301', 'NH','HND','SIN','10:00','16:00', 330, 5315,390,'1111111'),
+('NH-302', 'NH','SIN','HND','18:00','01:00', 330, 5315,390,'1111111'),
+('JL-301', 'JL','NRT','BKK','10:00','15:30', 330, 4618,370,'1111111'),
+('JL-302', 'JL','BKK','NRT','18:00','01:00', 330, 4618,370,'1111111'),
+('KE-201', 'KE','ICN','SIN','09:00','14:00', 360, 4698,380,'1111111'),
+('KE-202', 'KE','SIN','ICN','16:00','23:00', 360, 4698,380,'1111111'),
+('KE-211', 'KE','ICN','BKK','09:00','13:00', 300, 3723,340,'1111111'),
+('KE-212', 'KE','BKK','ICN','15:00','22:00', 300, 3723,340,'1111111')
+ON CONFLICT (flight_number, departure_time) DO NOTHING;
+
+
+-- ============================================================
+-- STEP 6: FLIGHT PRICING (auto-generated for all flights)
+-- Economy for all flights
+-- Business for flights > 500km
+-- First Class for long-haul > 3000km
+-- ============================================================
+
+-- Economy class for ALL flights
 INSERT INTO flight_pricing (flight_id, class_code, class_name, price_usd, available_seats)
-VALUES
-    -- flight 1: AI-101 (BOM→DEL)
-    (1,  'E', 'Economy',   85.00, 150),
-    (1,  'B', 'Business', 220.00,  20),
-    (1,  'F', 'First',    450.00,   8),
+SELECT
+    f.flight_id,
+    'E',
+    'Economy',
+    ROUND(GREATEST(
+        f.base_price_usd * (0.85 + (f.flight_id % 31) * 0.01),
+        25
+    )::NUMERIC, 2),
+    CASE
+        WHEN f.distance_km > 8000 THEN 320
+        WHEN f.distance_km > 5000 THEN 280
+        WHEN f.distance_km > 2000 THEN 220
+        WHEN f.distance_km > 1000 THEN 180
+        ELSE 150
+    END
+FROM flights f
+WHERE NOT EXISTS (
+    SELECT 1 FROM flight_pricing fp
+    WHERE fp.flight_id = f.flight_id AND fp.class_code = 'E'
+);
 
-    -- flight 2: 6E-204 (DEL→BOM)
-    (2,  'E', 'Economy',   72.00, 160),
-    (2,  'B', 'Business', 190.00,  16),
+-- Business class for flights > 500km
+INSERT INTO flight_pricing (flight_id, class_code, class_name, price_usd, available_seats)
+SELECT
+    f.flight_id,
+    'B',
+    'Business',
+    ROUND(GREATEST(
+        f.base_price_usd * (2.8 + (f.flight_id % 20) * 0.05),
+        150
+    )::NUMERIC, 2),
+    CASE
+        WHEN f.distance_km > 8000 THEN 56
+        WHEN f.distance_km > 5000 THEN 48
+        WHEN f.distance_km > 2000 THEN 36
+        ELSE 24
+    END
+FROM flights f
+WHERE f.distance_km > 500
+  AND NOT EXISTS (
+    SELECT 1 FROM flight_pricing fp
+    WHERE fp.flight_id = f.flight_id AND fp.class_code = 'B'
+);
 
-    -- flight 3: AI-102 (DEL→BLR)
-    (3,  'E', 'Economy',   95.00, 140),
-    (3,  'B', 'Business', 260.00,  18),
-
-    -- flight 4: 6E-301 (BOM→BLR)
-    (4,  'E', 'Economy',   55.00, 165),
-    (4,  'B', 'Business', 150.00,  14),
-
-    -- flight 5: EK-500 (BOM→DXB)
-    (5,  'E', 'Economy',  180.00, 200),
-    (5,  'B', 'Business', 520.00,  42),
-    (5,  'F', 'First',   1200.00,  14),
-
-    -- flight 6: AI-960 (DEL→DXB)
-    (6,  'E', 'Economy',  165.00, 180),
-    (6,  'B', 'Business', 480.00,  36),
-
-    -- flight 7: EK-201 (DXB→LHR)
-    (7,  'E', 'Economy',  520.00, 210),
-    (7,  'B', 'Business',1400.00,  48),
-    (7,  'F', 'First',   3200.00,  16),
-
-    -- flight 8: EK-203 (DXB→JFK)
-    (8,  'E', 'Economy',  850.00, 210),
-    (8,  'B', 'Business',2200.00,  48),
-    (8,  'F', 'First',   4500.00,  14),
-
-    -- flight 9: SQ-401 (BOM→SIN)
-    (9,  'E', 'Economy',  310.00, 180),
-    (9,  'B', 'Business', 850.00,  42),
-    (9,  'F', 'First',   1800.00,  12),
-
-    -- flight 10: SQ-403 (DEL→SIN)
-    (10, 'E', 'Economy',  290.00, 180),
-    (10, 'B', 'Business', 780.00,  42),
-
-    -- flight 11: SQ-317 (SIN→LHR)
-    (11, 'E', 'Economy',  680.00, 200),
-    (11, 'B', 'Business',1800.00,  48),
-    (11, 'F', 'First',   3800.00,  14),
-
-    -- flight 12: SQ-025 (SIN→JFK)
-    (12, 'E', 'Economy',  920.00, 188),
-    (12, 'B', 'Business',2400.00,  42),
-    (12, 'F', 'First',   5200.00,  12),
-
-    -- flight 13: LH-757 (FRA→JFK)
-    (13, 'E', 'Economy',  580.00, 180),
-    (13, 'B', 'Business',1600.00,  40),
-
-    -- flight 14: BA-117 (LHR→JFK)
-    (14, 'E', 'Economy',  560.00, 180),
-    (14, 'B', 'Business',1500.00,  38),
-
-    -- flight 15: QF-001 (LHR→SYD)
-    (15, 'E', 'Economy',  980.00, 210),
-    (15, 'B', 'Business',2600.00,  48),
-    (15, 'F', 'First',   5800.00,  14),
-
-    -- flight 16: SQ-221 (SIN→SYD)
-    (16, 'E', 'Economy',  420.00, 180),
-    (16, 'B', 'Business',1100.00,  40),
-
-    -- flight 17: AI-971 (BOM→DXB, competing)
-    (17, 'E', 'Economy',  170.00, 160),
-    (17, 'B', 'Business', 480.00,  32),
-
-    -- flight 18: IX-191 (BOM→DXB, budget)
-    (18, 'E', 'Economy',  145.00, 180),
-
-    -- flight 19: AI-131 (DEL→BOM, competing)
-    (19, 'E', 'Economy',   68.00, 155),
-    (19, 'B', 'Business', 190.00,  24);
+-- First class for long-haul flights > 3000km
+INSERT INTO flight_pricing (flight_id, class_code, class_name, price_usd, available_seats)
+SELECT
+    f.flight_id,
+    'F',
+    'First Class',
+    ROUND(GREATEST(
+        f.base_price_usd * (5.5 + (f.flight_id % 10) * 0.1),
+        500
+    )::NUMERIC, 2),
+    CASE
+        WHEN f.distance_km > 10000 THEN 14
+        WHEN f.distance_km > 5000  THEN 10
+        ELSE 8
+    END
+FROM flights f
+WHERE f.distance_km > 3000
+  AND NOT EXISTS (
+    SELECT 1 FROM flight_pricing fp
+    WHERE fp.flight_id = f.flight_id AND fp.class_code = 'F'
+);

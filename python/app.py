@@ -113,12 +113,15 @@ def find_routes(origin, destination, cabin_class, optimize_by):
               AND NOT (f.dest_airport = ANY(rf.visited))
         )
         SELECT
-            path            AS route,
-            total_cost      AS price_usd,
-            total_duration  AS duration_mins,
-            num_stops
-        FROM route_finder
-        WHERE current_dest = %(destination)s
+    rf.path            AS route,
+    rf.total_cost      AS price_usd,
+    rf.total_duration  AS duration_mins,
+    rf.num_stops,
+
+    rf.visited         AS stops   -- ✅ IMPORTANT
+
+FROM route_finder rf
+WHERE rf.current_dest = %(destination)s
         ORDER BY {order_clause}
         LIMIT 10;
     """
@@ -129,19 +132,34 @@ def find_routes(origin, destination, cabin_class, optimize_by):
     }
     return run_query(query, params)
 
+def get_airport_display_map(airports_df):
+    return {
+        row['airport_code']: f"{row['city_name']} ({row['airport_code']})"
+        for _, row in airports_df.iterrows()
+    }
 
 def load_pricing_comparison():
     query = """
         SELECT
-            f.flight_number,
-            f.origin_airport || ' → ' || f.dest_airport AS route,
-            MAX(CASE WHEN fp.class_code = 'E' THEN fp.price_usd END) AS economy,
-            MAX(CASE WHEN fp.class_code = 'B' THEN fp.price_usd END) AS business,
-            MAX(CASE WHEN fp.class_code = 'F' THEN fp.price_usd END) AS first_class
-        FROM flights f
-        JOIN flight_pricing fp ON f.flight_id = fp.flight_id
-        GROUP BY f.flight_number, f.origin_airport, f.dest_airport
-        ORDER BY f.flight_number;
+    al.airline_name,
+    ci1.city_name || ' → ' || ci2.city_name AS route,
+
+    MAX(CASE WHEN fp.class_code = 'E' THEN fp.price_usd END) AS economy,
+    MAX(CASE WHEN fp.class_code = 'B' THEN fp.price_usd END) AS business,
+    MAX(CASE WHEN fp.class_code = 'F' THEN fp.price_usd END) AS first_class
+
+FROM flights f
+JOIN flight_pricing fp ON f.flight_id = fp.flight_id
+JOIN airlines al ON f.airline_code = al.airline_code
+
+JOIN airports a1 ON f.origin_airport = a1.airport_code
+JOIN cities ci1 ON a1.city_id = ci1.city_id
+
+JOIN airports a2 ON f.dest_airport = a2.airport_code
+JOIN cities ci2 ON a2.city_id = ci2.city_id
+
+GROUP BY al.airline_name, ci1.city_name, ci2.city_name
+ORDER BY al.airline_name;
     """
     return run_query(query)
 
@@ -182,6 +200,11 @@ with st.sidebar:
         st.error("Cannot connect to database. Check your password in app.py")
         st.stop()
 
+    airport_city_map = {
+        row['airport_code']: row['city_name']
+        for _, row in airports_df.iterrows()
+    }
+
     # Build airport options
     airport_options = {
         f"{row['airport_code']} — {row['city_name']}, {row['country_name']}": row['airport_code']
@@ -191,14 +214,12 @@ with st.sidebar:
 
     origin_label = st.selectbox(
         "🛫 Origin Airport",
-        airport_labels,
-        index=0
+        ["Select Origin"] + airport_labels
     )
 
     destination_label = st.selectbox(
         "🛬 Destination Airport",
-        airport_labels,
-        index=3
+        ["Select Destination"] + airport_labels
     )
 
     cabin_class = st.radio(
@@ -225,8 +246,8 @@ with st.sidebar:
 # ─────────────────────────────────────────
 # UI — MAIN CONTENT
 # ─────────────────────────────────────────
-origin      = airport_options[origin_label]
-destination = airport_options[destination_label]
+origin = airport_options.get(origin_label)
+destination = airport_options.get(destination_label)
 
 st.title("✈️ Global Flight Route Optimization System")
 st.markdown(
@@ -245,15 +266,20 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 # ── TAB 1: ROUTE FINDER ─────────────────
 with tab1:
-    if origin == destination:
+    if origin_label == "Select Origin" or destination_label == "Select Destination":
+        st.info("Please select both origin and destination")
+    
+    elif origin == destination:
         st.warning("⚠️ Origin and destination cannot be the same airport.")
-
-    elif search_btn or True:  # Show on load with defaults
+    
+    elif search_btn:
         class_names = {'E': 'Economy', 'B': 'Business', 'F': 'First Class'}
 
         col1, col2, col3 = st.columns(3)
-        col1.metric("From", origin)
-        col2.metric("To", destination)
+        airport_display_map = get_airport_display_map(airports_df)
+
+        col1.metric("From", airport_display_map.get(origin, origin))
+        col2.metric("To", airport_display_map.get(destination, destination))
         col3.metric("Class", class_names[cabin_class])
 
         with st.spinner("Finding optimal routes..."):
@@ -262,34 +288,59 @@ with tab1:
         if routes_df.empty:
             st.info(
                 f"No routes found from **{origin}** to **{destination}** "
-                f"in **{class_names[cabin_class]}** class.\n\n"
-                "Try a different cabin class or check the airport codes."
+                f"in **{class_names[cabin_class]}** class."
             )
         else:
             st.success(f"Found **{len(routes_df)}** route(s) — sorted by **{optimize_by}**")
 
             for i, row in routes_df.iterrows():
+                # 🟢 Convert stops → city path
+                stops_list = row.get('stops', [])
+
+                city_path = [
+                    airport_city_map.get(code, code)
+                    for code in stops_list
+                ]
+
+                # 🟢 Now create route display (CORRECT PLACE)
+                route_display = " → ".join(city_path)
+
+                # Remove origin & destination
+                if stops_list and len(stops_list) > 2:
+                    stop_codes = stops_list[1:-1]
+
+                    stop_names = [
+                        airport_city_map.get(code, code)
+                        for code in stop_codes
+                    ]
+
+                    stops_display = ", ".join(stop_names)
+                else:
+                    stops_display = "Direct Flight"
                 hrs  = int(row['duration_mins']) // 60
                 mins = int(row['duration_mins']) % 60
-                stops_label = "Direct ✅" if row['num_stops'] == 0 else f"{int(row['num_stops'])} Stop(s)"
+
+                actual_stops = max(0, int(row['num_stops']) - 1)
+
+                stops_label = "Direct ✅" if actual_stops == 0 else f"{actual_stops} Stop(s)"
 
                 with st.expander(
-                    f"#{i+1}  {row['route']}  —  "
+                    f"#{i+1}  {route_display}  —  "
                     f"${row['price_usd']:,.2f}  |  {hrs}h {mins}m  |  {stops_label}",
                     expanded=(i == 0)
                 ):
-                    c1, c2, c3, c4 = st.columns(4)
-                    c1.metric("💵 Total Price", f"${row['price_usd']:,.2f}")
-                    c2.metric("⏱️ Duration", f"{hrs}h {mins}m")
-                    c3.metric("🛑 Stops", stops_label)
-                    c4.metric("✈️ Flights", row['route'])
+                    flight_numbers = row['route'].split(" → ")
 
-            # Summary chart
-            if len(routes_df) > 1:
-                st.markdown("#### Price Comparison")
-                chart_df = routes_df[['route', 'price_usd']].copy()
-                chart_df = chart_df.set_index('route')
-                st.bar_chart(chart_df)
+                    # Map flights → cities using stops
+                    stops_list = row.get('stops', [])
+
+                    city_path = []
+                    
+                    for code in stops_list:
+                        city_path.append(airport_city_map.get(code, code))
+
+                    st.write(f"✈️ Route: {' → '.join(city_path)}")
+                    st.write(f"🛑 Stops: {stops_display}")
 
 
 # ── TAB 2: PRICE COMPARISON ─────────────
@@ -304,12 +355,14 @@ with tab2:
         pricing_df = load_pricing_comparison()
 
     if not pricing_df.empty:
+
+        pricing_df = pricing_df.sort_values(by='economy', ascending=True)
         # Format prices
         for col in ['economy', 'business', 'first_class']:
             pricing_df[col] = pricing_df[col].apply(
                 lambda x: f"${x:,.2f}" if pd.notna(x) else "—"
             )
-        pricing_df.columns = ['Flight', 'Route', 'Economy', 'Business', 'First Class']
+        pricing_df.columns = ['Airline', 'Route', 'Economy', 'Business', 'First Class']
         st.dataframe(pricing_df, use_container_width=True, hide_index=True)
 
 
